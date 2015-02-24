@@ -6,6 +6,8 @@ import algebra.Eq
 import brique.ConsList
 import brique.bench.input._
 import org.openjdk.jmh.annotations._
+import scala.collection.immutable.Range
+import scala.{Array, Boolean, Exception, Int, List, Option}
 
 
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -17,8 +19,8 @@ class ConsListBench {
     def eqv(x: Int, y: Int): Boolean = x == y
   }
 
-  val fixList: List[Int] = (1 to 100).toList
-  val fixConsList: ConsList[Int] = ConsList(1 to 100: _*)
+  val fixList: List[Int] = Range.inclusive(1,100).toList
+  val fixConsList: ConsList[Int] = ConsList(fixList: _*)
 
   @Benchmark def appendConsList(in: ConsListInput): ConsList[Int] =
     in.iList.append(5)
@@ -61,9 +63,9 @@ class ConsListBench {
 
   @Benchmark def lookUpList(in: ListInput, i: IndexInput): Option[Int] =
     try {
-      Some(in.list.apply(i.index))
+      Option(in.list.apply(i.index))
     } catch {
-      case _: Exception => None
+      case _: Exception => Option.empty
     }
 
   @Benchmark def lastOptionConsList(in: ConsListInput): Option[Int] =

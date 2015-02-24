@@ -1,6 +1,7 @@
 package brique.bench.input
 
 import org.openjdk.jmh.annotations.{Setup, Param, Scope, State}
+import scala.{Array, Int, Unit}
 
 @State(Scope.Thread)
 class ArrayInput extends InputHelper {

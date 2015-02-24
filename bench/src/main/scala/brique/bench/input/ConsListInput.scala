@@ -2,6 +2,7 @@ package brique.bench.input
 
 import brique.ConsList
 import org.openjdk.jmh.annotations.{Setup, Param, Scope, State}
+import scala.{Array, Int, Unit}
 
 @State(Scope.Thread)
 class ConsListInput extends InputHelper {

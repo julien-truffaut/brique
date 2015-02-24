@@ -1,6 +1,7 @@
 package brique.bench.input
 
 import org.openjdk.jmh.annotations.{Setup, Param, Scope, State}
+import scala.{Array, Int, List, Unit}
 
 @State(Scope.Thread)
 class ListInput extends InputHelper {
@@ -11,5 +12,5 @@ class ListInput extends InputHelper {
 
   @Setup
   def setup(): Unit =
-    list = genArray(size)(r.nextInt()).toList
+    list = List(genArray(size)(r.nextInt()): _*)
 }

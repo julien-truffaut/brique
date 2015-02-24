@@ -1,7 +1,9 @@
 package brique.bench.input
 
+import scala.collection.immutable.Range
 import scala.reflect.ClassTag
 import scala.util.Random
+import scala.{Array, Int}
 
 trait InputHelper {
 
@@ -9,7 +11,7 @@ trait InputHelper {
 
   def genArray[A: ClassTag](size:Int)(f: => A): Array[A] = {
     val data = Array.ofDim[A](size)
-    for (i <- 0 until size) data(i) = f
+    for (i <- Range(0, size)) data(i) = f
     data
   }
 

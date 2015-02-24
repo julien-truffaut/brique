@@ -3,12 +3,14 @@ package brique
 import algebra.{Eq, Monoid}
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.{Boolean, Int, List, None, Nothing, Option, Some}
+import scala.{inline, unchecked}
 
 /**
  * Purely functional single linked list
  * ConsList is strongly inspired by scalaz.IList
  */
-sealed abstract class ConsList[A] extends Product with Serializable {
+sealed abstract class ConsList[A] extends scala.Product with scala.Serializable {
   import brique.ConsList._
 
   /** add an element to the back */

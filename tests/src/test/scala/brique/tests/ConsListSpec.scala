@@ -6,6 +6,8 @@ import brique.ConsList.{CNil, Cons}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
+import java.lang.String
+import scala.{Boolean, Int, Option, None, Some}
 
 class ConsListSpec extends FunSuite with Checkers {
 
