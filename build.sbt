@@ -1,6 +1,4 @@
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
-import com.typesafe.sbt.SbtSite.SiteKeys._
-import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import pl.project13.scala.sbt.SbtJmh._
 import sbtrelease.ReleaseStep
 import sbtrelease.ReleasePlugin.ReleaseKeys.releaseProcess
@@ -35,7 +33,8 @@ lazy val commonSettings = Seq(
   ),
   resolvers ++= Seq(
     "bintray/non" at "http://dl.bintray.com/non/maven",
-    Resolver.sonatypeRepo("releases")
+    Resolver.sonatypeRepo("releases"),
+    Resolver.sonatypeRepo("snapshots")
   ),
   libraryDependencies ++= Seq(
     "org.spire-math" %% "algebra" % "0.2.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/algebra_2.11-0.2.0-SNAPSHOT.jar",
@@ -62,6 +61,11 @@ lazy val aggregate = project.in(file("."))
 lazy val core = project
   .settings(moduleName := "brique-core")
   .settings(briqueSettings: _*)
+  .settings(
+
+    libraryDependencies += "org.scala-miniboxing.plugins" %% "miniboxing-runtime" % "0.4-SNAPSHOT",
+    addCompilerPlugin(     "org.scala-miniboxing.plugins" %% "miniboxing-plugin"  % "0.4-SNAPSHOT")
+  )
 
 lazy val tests = project.dependsOn(core)
   .settings(moduleName := "brique-tests")

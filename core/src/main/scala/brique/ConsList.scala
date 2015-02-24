@@ -4,13 +4,13 @@ import algebra.{Eq, Monoid}
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.{Boolean, Int, List, None, Nothing, Option, Some}
-import scala.{inline, unchecked}
+import scala.{inline, miniboxed, unchecked}
 
 /**
  * Purely functional single linked list
  * ConsList is strongly inspired by scalaz.IList
  */
-sealed abstract class ConsList[A] extends scala.Product with scala.Serializable {
+sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Serializable {
   import brique.ConsList._
 
   /** add an element to the back */
@@ -47,19 +47,19 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     loop(this, empty[A])
   }
 
-  final def flatMap[B](f: A => ConsList[B]): ConsList[B] =
+  final def flatMap[@miniboxed B](f: A => ConsList[B]): ConsList[B] =
     reverse.foldLeft(empty[B])((acc, a) => f(a) ++ acc )
 
   @tailrec
-  final def foldLeft[B](b: B)(f: (B, A) => B): B = this match {
+  final def foldLeft[@miniboxed B](b: B)(f: (B, A) => B): B = this match {
     case CNil()     => b
     case Cons(h, t) => t.foldLeft(f(b,h))(f)
   }
 
-  final def foldMap[B](b: B)(f: A => B)(implicit B: Monoid[B]): B =
+  final def foldMap[@miniboxed B](b: B)(f: A => B)(implicit B: Monoid[B]): B =
     reverse.foldLeft(b)((acc, a) => B.combine(f(a), acc))
 
-  final def foldRight[B](b: B)(f: (A, B) => B): B =
+  final def foldRight[@miniboxed B](b: B)(f: (A, B) => B): B =
     reverse.foldLeft(b)((b, a) => f(a, b))
 
   /** get the head if the [[ConsList]] is not empty */
@@ -97,7 +97,7 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     loop(this, index)
   }
 
-  final def map[B](f: A => B): ConsList[B] =
+  final def map[@miniboxed B](f: A => B): ConsList[B] =
     reverse.foldLeft(empty[B])((acc, a) => Cons(f(a), acc))
 
   /** add an element to the front */
@@ -175,32 +175,32 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
 }
 
 object ConsList extends ConsListInstances {
-  final case class CNil[A]() extends ConsList[A]
-  final case class Cons[A](head: A, tail: ConsList[A]) extends ConsList[A]
+  final case class CNil[@miniboxed A]() extends ConsList[A]
+  final case class Cons[@miniboxed A](head: A, tail: ConsList[A]) extends ConsList[A]
 
   private val nil: ConsList[Nothing] = CNil()
 
   /** create an [[ConsList]] with a single element */
-  def singleton[A](a: A): ConsList[A] =
+  def singleton[@miniboxed A](a: A): ConsList[A] =
     Cons(a, empty)
 
   /** create an empty [[ConsList]] */
-  def empty[A]: ConsList[A] =
+  def empty[@miniboxed A]: ConsList[A] =
     nil.asInstanceOf[ConsList[A]]
 
   /** create an [[ConsList]] from a varargs */
-  def apply[A](as: A*): ConsList[A] =
+  def apply[@miniboxed A](as: A*): ConsList[A] =
     as.foldRight(empty[A])(Cons(_,_))
 
 }
 
 sealed abstract class ConsListInstances {
-  implicit def ilistEq[A: Eq]: Eq[ConsList[A]] = new Eq[ConsList[A]]{
+  implicit def ilistEq[@miniboxed A: Eq]: Eq[ConsList[A]] = new Eq[ConsList[A]]{
     def eqv(x: ConsList[A], y: ConsList[A]): Boolean =
       x === y
   }
 
-  implicit def ilistMonoid[A]: Monoid[ConsList[A]] = new Monoid[ConsList[A]] {
+  implicit def ilistMonoid[@miniboxed A]: Monoid[ConsList[A]] = new Monoid[ConsList[A]] {
     def empty: ConsList[A] =
       ConsList.empty
 
