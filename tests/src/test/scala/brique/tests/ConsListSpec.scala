@@ -8,6 +8,7 @@ import org.scalatest.FunSuite
 import org.scalatest.prop.Checkers
 import java.lang.String
 import scala.{Boolean, Int, Option, None, Some}
+import scala.miniboxed
 
 class ConsListSpec extends FunSuite with Checkers {
 
@@ -15,7 +16,7 @@ class ConsListSpec extends FunSuite with Checkers {
     def eqv(x: Int, y: Int): Boolean = x == y
   }
 
-  implicit def optionEq[A](implicit A: Eq[A]): Eq[Option[A]] = new Eq[Option[A]] {
+  implicit def optionEq[@miniboxed A](implicit A: Eq[A]): Eq[Option[A]] = new Eq[Option[A]] {
     def eqv(x: Option[A], y: Option[A]): Boolean = (x, y) match {
       case (None, None) => true
       case (Some(a1), Some(a2)) => A.eqv(a1, a2)
@@ -28,7 +29,7 @@ class ConsListSpec extends FunSuite with Checkers {
     def combine(x: String, y: String): String = x + y
   }
 
-  implicit def consListArb[A](implicit A: Arbitrary[A]): Arbitrary[ConsList[A]] = Arbitrary(
+  implicit def consListArb[@miniboxed A](implicit A: Arbitrary[A]): Arbitrary[ConsList[A]] = Arbitrary(
     Gen.listOf(A.arbitrary).map(l => ConsList(l: _*))
   )
 

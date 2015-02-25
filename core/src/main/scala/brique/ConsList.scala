@@ -26,15 +26,21 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
     reverse.foldLeft(as)((acc, a) => Cons(a, acc))
 
   /** drop the `n` first elements */
-  @tailrec final def drop(n: Int): ConsList[A] = this match {
-    case CNil()    => this
-    case Cons(h,t) => if(n > 0) t.drop(n - 1) else this
+  final def drop(n: Int): ConsList[A] = {
+    @tailrec def loop(m: Int, acc: ConsList[A]): ConsList[A] = acc match {
+      case CNil() => acc
+      case Cons(h, t) => if (n > 0) loop(n - 1, t) else acc
+    }
+    loop(n, this)
   }
 
   /** drop elements as long as the predicate holds */
-  @tailrec final def dropWhile(p: A => Boolean): ConsList[A] = this match {
-    case CNil()    => this
-    case Cons(h,t) => if(p(h)) t.dropWhile(p) else this
+  final def dropWhile(p: A => Boolean): ConsList[A] = {
+    @tailrec def loop(acc: ConsList[A]): ConsList[A] = acc match {
+      case CNil()    => acc
+      case Cons(h,t) => if(p(h)) loop(t) else acc
+    }
+    loop(this)
   }
 
   /** filter all elements that match the predicate */
@@ -50,10 +56,12 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
   final def flatMap[@miniboxed B](f: A => ConsList[B]): ConsList[B] =
     reverse.foldLeft(empty[B])((acc, a) => f(a) ++ acc )
 
-  @tailrec
-  final def foldLeft[@miniboxed B](b: B)(f: (B, A) => B): B = this match {
-    case CNil()     => b
-    case Cons(h, t) => t.foldLeft(f(b,h))(f)
+  final def foldLeft[@miniboxed B](b: B)(f: (B, A) => B): B = {
+    @tailrec def loop(r: B, acc: ConsList[A]): B = acc match {
+      case CNil()     => r
+      case Cons(h, t) => loop(f(b,h), t)
+    }
+    loop(b, this)
   }
 
   final def foldMap[@miniboxed B](b: B)(f: A => B)(implicit B: Monoid[B]): B =

@@ -46,10 +46,11 @@ lazy val commonSettings = Seq(
     "git@github.com:julien-truffaut/brique.git"))
 )
 
-lazy val briqueSettings = buildSettings ++ commonSettings ++ publishSettings ++ releaseSettings
+lazy val briqueSettings = buildSettings ++ commonSettings ++ publishSettings ++ releaseSettings ++ miniBoxingSettings
 
-lazy val disciplineDependencies = Seq(
-  "org.scalacheck" %% "scalacheck" % "1.11.3"
+lazy val miniBoxingSettings = Seq(
+  libraryDependencies += "org.scala-miniboxing.plugins" %% "miniboxing-runtime" % "0.4-SNAPSHOT",
+  addCompilerPlugin(     "org.scala-miniboxing.plugins" %% "miniboxing-plugin"  % "0.4-SNAPSHOT")
 )
 
 lazy val aggregate = project.in(file("."))
@@ -61,19 +62,15 @@ lazy val aggregate = project.in(file("."))
 lazy val core = project
   .settings(moduleName := "brique-core")
   .settings(briqueSettings: _*)
-  .settings(
-
-    libraryDependencies += "org.scala-miniboxing.plugins" %% "miniboxing-runtime" % "0.4-SNAPSHOT",
-    addCompilerPlugin(     "org.scala-miniboxing.plugins" %% "miniboxing-plugin"  % "0.4-SNAPSHOT")
-  )
 
 lazy val tests = project.dependsOn(core)
   .settings(moduleName := "brique-tests")
   .settings(briqueSettings: _*)
   .settings(noPublishSettings: _*)
   .settings(
-    libraryDependencies ++= disciplineDependencies ++ Seq(
-      "org.scalatest" %% "scalatest" % "2.1.3" % "test"
+    libraryDependencies ++= Seq(
+      "org.scalatest"  %% "scalatest"  % "2.1.3" % "test",
+      "org.scalacheck" %% "scalacheck" % "1.11.3"
     )
   )
 
