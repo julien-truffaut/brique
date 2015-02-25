@@ -106,15 +106,15 @@ class ConsListSpec extends FunSuite with Checkers {
     assert(ConsList(1,2,3,4,5).dropWhile(_ <= 3) === ConsList(4,5))
   }
 
-  test("widen"){
-    sealed trait Fruit
-    case object Apple  extends Fruit
-    case object Orange extends Fruit
-
-    val apples: ConsList[Apple.type] = ConsList(Apple, Apple)
-
-    // Orange :: apples doesn't compile
-    assert((Orange :: apples.widen[Fruit]) == ConsList[Fruit](Orange, Apple, Apple))
-  }
+//  test("widen"){
+//    sealed trait Fruit
+//    case object Apple  extends Fruit
+//    case object Orange extends Fruit
+//
+//    val apples: ConsList[Apple.type] = ConsList(Apple, Apple)
+//
+//    // Orange :: apples doesn't compile
+//    assert((Orange :: apples.widen[Fruit]) == ConsList[Fruit](Orange, Apple, Apple))
+//  }
 
 }

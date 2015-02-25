@@ -61,7 +61,7 @@ class ConsListBench {
   @Benchmark def lookupConsList(in: ConsListInput, i: IndexInput): Option[Int] =
     in.iList.lookup(i.index)
 
-  @Benchmark def lookUpList(in: ListInput, i: IndexInput): Option[Int] =
+  @Benchmark def lookupList(in: ListInput, i: IndexInput): Option[Int] =
     try {
       Option(in.list.apply(i.index))
     } catch {

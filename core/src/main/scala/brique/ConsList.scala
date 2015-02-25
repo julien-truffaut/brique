@@ -29,7 +29,7 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
   final def drop(n: Int): ConsList[A] = {
     @tailrec def loop(m: Int, acc: ConsList[A]): ConsList[A] = acc match {
       case CNil() => acc
-      case Cons(h, t) => if (n > 0) loop(n - 1, t) else acc
+      case Cons(h, t) => if (m > 0) loop(m - 1, t) else acc
     }
     loop(n, this)
   }
@@ -59,7 +59,7 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
   final def foldLeft[@miniboxed B](b: B)(f: (B, A) => B): B = {
     @tailrec def loop(r: B, acc: ConsList[A]): B = acc match {
       case CNil()     => r
-      case Cons(h, t) => loop(f(b,h), t)
+      case Cons(h, t) => loop(f(r,h), t)
     }
     loop(b, this)
   }

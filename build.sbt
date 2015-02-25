@@ -71,7 +71,8 @@ lazy val tests = project.dependsOn(core)
     libraryDependencies ++= Seq(
       "org.scalatest"  %% "scalatest"  % "2.1.3" % "test",
       "org.scalacheck" %% "scalacheck" % "1.11.3"
-    )
+    ),
+    scalacOptions += "-P:minibox:warn-off"
   )
 
 lazy val bench = project.dependsOn(core)
