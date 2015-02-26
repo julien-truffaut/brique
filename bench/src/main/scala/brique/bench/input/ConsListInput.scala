@@ -13,5 +13,5 @@ class ConsListInput extends InputHelper {
 
   @Setup
   def setup(): Unit =
-    iList = ConsList(genArray(size)(r.nextInt()): _*)
+    iList = ConsList(range(size): _*)
 }

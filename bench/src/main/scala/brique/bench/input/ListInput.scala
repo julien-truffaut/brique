@@ -12,5 +12,5 @@ class ListInput extends InputHelper {
 
   @Setup
   def setup(): Unit =
-    list = List(genArray(size)(r.nextInt()): _*)
+    list = List(range(size): _*)
 }
