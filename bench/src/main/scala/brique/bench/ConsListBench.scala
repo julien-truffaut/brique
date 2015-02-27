@@ -22,6 +22,12 @@ class ConsListBench {
   val fixList: List[Int] = Range.inclusive(1,100).toList
   val fixConsList: ConsList[Int] = ConsList(fixList: _*)
 
+  @Benchmark def sumConsList(in: ConsListInput): Int =
+    in.iList.foldLeft(0)(_ + _)
+
+  @Benchmark def sumList(in: ListInput): Int =
+    in.list.sum
+
   @Benchmark def appendConsList(in: ConsListInput): ConsList[Int] =
     in.iList.append(5)
 

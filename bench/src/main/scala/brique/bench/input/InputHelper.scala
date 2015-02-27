@@ -15,4 +15,7 @@ trait InputHelper {
     data
   }
 
+  def range(size: Int): Range =
+    Range.inclusive(0, size)
+
 }
