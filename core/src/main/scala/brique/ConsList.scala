@@ -1,14 +1,13 @@
 package brique
 
 import algebra.{Eq, Monoid}
-import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.{Boolean, Int, List, None, Nothing, Option, Some}
 import scala.{inline, unchecked}
 
 /**
  * Purely functional single linked list
- * ConsList is strongly inspired by scalaz.IList
+ * [[ConsList]] is inspired by scalaz.IList
  */
 sealed abstract class ConsList[A] extends scala.Product with scala.Serializable {
   import brique.ConsList._
@@ -17,7 +16,7 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
   final def append(a: A): ConsList[A] =
     reverse.foldLeft(ConsList.singleton(a))((acc, a) => Cons(a, acc))
 
-  /** add an [[ConsList]] to the back */
+  /** add a [[ConsList]] to the back */
   final def concat(as: ConsList[A]): ConsList[A] =
     reverse.foldLeft(as)((acc, a) => Cons(a, acc))
 
@@ -26,34 +25,64 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     reverse.foldLeft(as)((acc, a) => Cons(a, acc))
 
   /** drop the `n` first elements */
-  @tailrec final def drop(n: Int): ConsList[A] = this match {
-    case CNil()    => this
-    case Cons(h,t) => if(n > 0) t.drop(n - 1) else this
+  final def drop(n: Int): ConsList[A] = {
+    var acc = this
+    var m = n
+    while(true){
+      acc match {
+        case CNil() => return acc
+        case Cons(h, t) =>
+          if(m > 0) { acc = t; m = m - 1 }
+          else return acc
+      }
+    }
+    acc
   }
 
   /** drop elements as long as the predicate holds */
-  @tailrec final def dropWhile(p: A => Boolean): ConsList[A] = this match {
-    case CNil()    => this
-    case Cons(h,t) => if(p(h)) t.dropWhile(p) else this
+  final def dropWhile(p: A => Boolean): ConsList[A] = {
+    var acc = this
+    while(true){
+      acc match {
+        case CNil() => return acc
+        case Cons(h, t) =>
+          if(p(h)) acc = t
+          else return acc
+      }
+    }
+    acc
   }
 
   /** filter all elements that match the predicate */
   final def filter(p: A => Boolean): ConsList[A] = {
-    @tailrec
-    def loop(as: ConsList[A], acc: ConsList[A]): ConsList[A] = as match {
-      case CNil()     => acc.reverse
-      case Cons(h, t) => if(p(h)) loop(t, Cons(h, acc)) else loop(t, acc)
+    var acc = empty[A]
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          if(p(h)) acc = Cons(h, acc)
+          l = t
+        case CNil() => return acc.reverse
+      }
     }
-    loop(this, empty[A])
+    acc
   }
 
   final def flatMap[B](f: A => ConsList[B]): ConsList[B] =
     reverse.foldLeft(empty[B])((acc, a) => f(a) ++ acc )
 
-  @tailrec
-  final def foldLeft[B](b: B)(f: (B, A) => B): B = this match {
-    case CNil()     => b
-    case Cons(h, t) => t.foldLeft(f(b,h))(f)
+  final def foldLeft[B](b: B)(f: (B, A) => B): B = {
+    var acc = b
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          acc = f(acc, h)
+          l = t
+        case CNil() => return acc
+      }
+    }
+    acc
   }
 
   final def foldMap[B](b: B)(f: A => B)(implicit B: Monoid[B]): B =
@@ -68,7 +97,7 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     case Cons(h, _) => Some(h)
   }
 
-  /** check if an [[ConsList]] is empty */
+  /** check if a [[ConsList]] is empty */
   final def isEmpty: Boolean = this match {
     case CNil()     => true
     case Cons(_, _) => false
@@ -76,29 +105,61 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
 
   /** get the last element if the [[ConsList]] is not empty */
   final def lastOption: Option[A] = {
-    @tailrec def loop(as: ConsList[A]): A = (as: @unchecked) match {
-      case Cons(h, CNil()) => h
-      case Cons(_, t)      => loop(t)
+    this match {
+      case CNil() => None
+      case Cons(head, tail) =>
+        var last = head
+        var l = tail
+        while(true){
+          l match {
+            case Cons(h, t) =>
+              last = h
+              l = t
+            case CNil() => return Some(last)
+          }
+        }
+        Some(last)
     }
-    if(isEmpty) None
-    else Some(loop(this))
   }
 
   /** get the element at the index if it exists */
   final def lookup(index: Int): Option[A] = {
-    @tailrec
-    def loop(as: ConsList[A], i: Int): Option[A] = as match {
-      case Cons(h, t) =>
-        if(i > 0) loop(t, i - 1)
-        else if(i == 0) Some(h)
-        else None
-      case CNil() => None
+    var l = this
+    var i = index
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          if(i > 0){ i = i - 1; l = t }
+          else if(i == 0) return Some(h)
+          else return None
+        case CNil() => return None
+      }
     }
-    loop(this, index)
+    None
   }
 
-  final def map[B](f: A => B): ConsList[B] =
-    reverse.foldLeft(empty[B])((acc, a) => Cons(f(a), acc))
+  final def map[B](f: A => B): ConsList[B] = {
+    var acc = empty[B]
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          acc = Cons(f(h), acc)
+          l = t
+        case CNil() =>
+          var acc2 = empty[B]
+          while(true){
+            acc match {
+              case Cons(h, t) =>
+                acc2 = Cons(h, acc2)
+                acc = t
+              case CNil() => return acc2
+            }
+          }
+      }
+    }
+    acc
+  }
 
   /** add an element to the front */
   final def prepend(a: A): ConsList[A] =
@@ -108,17 +169,32 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
   final def ::(a: A): ConsList[A] =
     Cons(a, this)
 
-  /** reverse an [[ConsList]] */
-  final def reverse: ConsList[A] =
-    foldLeft(empty[A])((acc, a) => Cons(a, acc))
-
-  /** compute the size of an [[ConsList]] */
-  final def size: Int = {
-    @inline @tailrec def loop(as: ConsList[A], acc: Int): Int = as match {
-      case Cons(_, t) => loop(t, acc + 1)
-      case CNil()     => acc
+  /** reverse a [[ConsList]] */
+  final def reverse: ConsList[A] = {
+    var acc = empty[A]
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) => acc = Cons(h , acc); l = t
+        case CNil() => return acc
+      }
     }
-    loop(this, 0)
+    acc
+  }
+
+  /** compute the size of a [[ConsList]] */
+  final def size: Int = {
+    var acc = 0
+    var l = this
+    while(true){
+      l match {
+        case Cons(_, t) =>
+          acc = acc + 1
+          l = t
+        case CNil() => return acc
+      }
+    }
+    acc
   }
 
   /** get the tail if the [[ConsList]] is not empty */
@@ -129,47 +205,63 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
 
   /** take the `n` first elements */
   final def take(n: Int): ConsList[A] = {
-    @tailrec
-    def loop(as: ConsList[A], m: Int, acc: ConsList[A]): ConsList[A] = as match {
-      case CNil()    => acc.reverse
-      case Cons(h,t) => if(m > 0) loop(t, m - 1, Cons(h, acc)) else acc.reverse
+    var acc = empty[A]
+    var l = this
+    var m = n
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          if(m > 0){ m = m - 1; l = t; acc = Cons(h, acc) }
+          else return acc.reverse
+        case CNil() => return acc.reverse
+      }
     }
-    loop(this, n, empty)
+    acc
   }
 
   /** take elements as long as the predicate holds */
   final def takeWhile(p: A => Boolean): ConsList[A] = {
-    @tailrec
-    def loop(as: ConsList[A], acc: ConsList[A]): ConsList[A] = as match {
-      case CNil()    => acc.reverse
-      case Cons(h,t) => if(p(h)) loop(t, Cons(h, acc)) else acc.reverse
+    var acc = empty[A]
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          if(p(h)){ l = t; acc = Cons(h, acc) }
+          else return acc.reverse
+        case CNil() => return acc.reverse
+      }
     }
-    loop(this, empty)
+    acc
   }
 
-  /** transform an [[ConsList]] into a [[scala.List]] */
+  /** transform a [[ConsList]] into a [[scala.List]] */
   final def toList: List[A] =
     foldLeft(ListBuffer.empty[A])(_ += _).toList
 
-  /** attempt to get head and tail of an [[ConsList]] */
+  /** attempt to get head and tail of a [[ConsList]] */
   final def uncons: Option[(A, ConsList[A])] = this match {
     case CNil()     => Option.empty
     case Cons(h, t) => Some((h,t))
   }
 
-  /** widen the type of an [[ConsList]] */
+  /** widen the type of a [[ConsList]] */
   final def widen[B >: A]: ConsList[B] =
     this.asInstanceOf[ConsList[B]]
 
-  /** check if two matches are equal */
+  /** check if two [[ConsList]] are equal */
   final def ===(other: ConsList[A])(implicit A: Eq[A]): Boolean = {
-    @inline @tailrec
-    def loop(as: ConsList[A], bs: ConsList[A]): Boolean = (as, bs) match {
-      case (CNil(), CNil()) => true
-      case (Cons(x, xs), Cons(y, ys)) => A.eqv(x,y) && loop(xs, ys)
-      case _ => false
+    var as = this
+    var bs = other
+    while(true){
+      (as, bs) match {
+        case (CNil(), CNil()) => return true
+        case (Cons(x, xs), Cons(y, ys)) =>
+          if(A.eqv(x,y)){ as = xs; bs = ys }
+          else return false
+        case _ => return false
+      }
     }
-    loop(this, other)
+    true
   }
 
 }
@@ -180,7 +272,7 @@ object ConsList extends ConsListInstances {
 
   private val nil: ConsList[Nothing] = CNil()
 
-  /** create an [[ConsList]] with a single element */
+  /** create a [[ConsList]] with a single element */
   def singleton[A](a: A): ConsList[A] =
     Cons(a, empty)
 
@@ -188,7 +280,7 @@ object ConsList extends ConsListInstances {
   def empty[A]: ConsList[A] =
     nil.asInstanceOf[ConsList[A]]
 
-  /** create an [[ConsList]] from a varargs */
+  /** create a [[ConsList]] from a varargs */
   def apply[A](as: A*): ConsList[A] =
     as.foldRight(empty[A])(Cons(_,_))
 
