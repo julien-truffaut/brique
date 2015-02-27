@@ -139,8 +139,28 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
     None
   }
 
-  final def map[@miniboxed B](f: A => B): ConsList[B] =
-    reverse.foldLeft(empty[B])((acc, a) => Cons(f(a), acc))
+  final def map[@miniboxed B](f: A => B): ConsList[B] = {
+    var acc = empty[B]
+    var l = this
+    while(true){
+      l match {
+        case Cons(h, t) =>
+          acc = Cons(f(h), acc)
+          l = t
+        case CNil() =>
+          var acc2 = empty[B]
+          while(true){
+          acc match {
+            case Cons(h, t) =>
+              acc2 = Cons(h, acc2)
+              acc = t
+            case CNil() => return acc2
+          }
+        }
+      }
+    }
+    acc
+  }
 
   /** add an element to the front */
   final def prepend(a: A): ConsList[A] =
@@ -151,11 +171,7 @@ sealed abstract class ConsList[@miniboxed A] extends scala.Product with scala.Se
     Cons(a, this)
 
   /** reverse a [[ConsList]] */
-  final def reverse: ConsList[A] =
-    foldLeft(empty[A])((acc, a) => Cons(a, acc))
-
-  /** reverse a [[ConsList]] */
-  final def reverse2: ConsList[A] = {
+  final def reverse: ConsList[A] = {
     var acc = empty[A]
     var l = this
     while(true){

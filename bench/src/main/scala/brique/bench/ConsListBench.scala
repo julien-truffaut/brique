@@ -125,9 +125,6 @@ class ConsListBench {
   @Benchmark def reverseConsList(in: ConsListInput): ConsList[Int] =
     in.iList.reverse
 
-  @Benchmark def reverse2ConsList(in: ConsListInput): ConsList[Int] =
-    in.iList.reverse2
-
   @Benchmark def reverseList(in: ListInput): List[Int] =
     in.list.reverse
 
