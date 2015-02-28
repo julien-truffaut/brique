@@ -43,9 +43,15 @@ class ConsListSpec extends FunSuite with Checkers {
     )
   }
 
-  test("foldLeft with cons reverse the list") {
+  test("foldLeft") {
     check((as: ConsList[Int]) =>
       as.foldLeft(ConsList.empty[Int])(_.prepend(_)).toList === as.toList.reverse
+    )
+  }
+
+  test("map") {
+    check((as: ConsList[Int]) =>
+      as.map(_ + 1).toList === as.toList.map(_ + 1)
     )
   }
 

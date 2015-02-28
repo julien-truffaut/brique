@@ -5,7 +5,7 @@ import scala.{Array, Int, List, Unit}
 
 @State(Scope.Thread)
 class ListInput extends InputHelper {
-  @Param(Array("10", "100", "1000", "10000", "100000", "1000000"))
+  @Param(Array("10", "100", "1000", "10000"))
   var size: Int = _
 
   var list: List[Int] = _

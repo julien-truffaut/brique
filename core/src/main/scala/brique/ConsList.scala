@@ -140,22 +140,11 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
 
   final def map[B](f: A => B): ConsList[B] = {
     var acc = empty[B]
-    var l = this
+    var l = reverse
     while(true){
       l match {
-        case Cons(h, t) =>
-          acc = Cons(f(h), acc)
-          l = t
-        case CNil() =>
-          var acc2 = empty[B]
-          while(true){
-            acc match {
-              case Cons(h, t) =>
-                acc2 = Cons(h, acc2)
-                acc = t
-              case CNil() => return acc2
-            }
-          }
+        case Cons(h, t) => acc = Cons(f(h), acc); l = t
+        case CNil() => return acc
       }
     }
     acc

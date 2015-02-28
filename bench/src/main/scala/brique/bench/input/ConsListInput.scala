@@ -6,7 +6,7 @@ import scala.{Array, Int, Unit}
 
 @State(Scope.Thread)
 class ConsListInput extends InputHelper {
-  @Param(Array("10", "100", "1000", "10000", "100000", "1000000"))
+  @Param(Array("10", "100", "1000", "10000"))
   var size: Int = _
 
   var iList: ConsList[Int] = _
