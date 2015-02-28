@@ -9,9 +9,9 @@ class ConsListInput extends InputHelper {
   @Param(Array("10", "100", "1000", "10000"))
   var size: Int = _
 
-  var iList: ConsList[Int] = _
+  var consList: ConsList[Int] = _
 
   @Setup
   def setup(): Unit =
-    iList = ConsList(range(size): _*)
+    consList = ConsList(range(size): _*)
 }
