@@ -1,9 +1,6 @@
 package brique.tests
 
 import brique.LongMap
-import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.FunSuite
-import org.scalatest.prop.Checkers
 
 import java.lang.String
 
@@ -11,14 +8,7 @@ import scala.{Long, None, Some}
 import scala.collection.immutable.Map
 import scala.Predef.ArrowAssoc
 
-class LongMapSpec extends FunSuite with Checkers {
-
-  implicit def mapArb[K, V](implicit K: Arbitrary[K], V: Arbitrary[V]): Arbitrary[Map[K, V]] =
-    Arbitrary(Gen.mapOf(Gen.zip(K.arbitrary, V.arbitrary)))
-
-  implicit def longMapArb[A](implicit A: Arbitrary[A]): Arbitrary[LongMap[A]] = Arbitrary(
-    Gen.listOf(Gen.zip(Arbitrary.arbLong.arbitrary, A.arbitrary)).map(kv => LongMap(kv: _*))
-  )
+class LongMapSpec extends BriqueSuite {
 
   test("apply - toMap") {
     check((kv: Map[Long, String]) =>
