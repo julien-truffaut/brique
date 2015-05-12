@@ -1,36 +1,11 @@
 package brique.tests
 
-import algebra.{Monoid, Eq}
 import brique.ConsList
 import brique.ConsList.{CNil, Cons}
-import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.FunSuite
-import org.scalatest.prop.Checkers
 import java.lang.String
 import scala.{Boolean, Int, Option, None, Some}
 
-class ConsListSpec extends FunSuite with Checkers {
-
-  implicit val intEq = new Eq[Int] {
-    def eqv(x: Int, y: Int): Boolean = x == y
-  }
-
-  implicit def optionEq[A](implicit A: Eq[A]): Eq[Option[A]] = new Eq[Option[A]] {
-    def eqv(x: Option[A], y: Option[A]): Boolean = (x, y) match {
-      case (None, None) => true
-      case (Some(a1), Some(a2)) => A.eqv(a1, a2)
-      case _ => false
-    }
-  }
-
-  implicit val stringMonoid = new Monoid[String] {
-    def empty: String = ""
-    def combine(x: String, y: String): String = x + y
-  }
-
-  implicit def consListArb[A](implicit A: Arbitrary[A]): Arbitrary[ConsList[A]] = Arbitrary(
-    Gen.listOf(A.arbitrary).map(l => ConsList(l: _*))
-  )
+class ConsListSpec extends BriqueSuite {
 
   test("apply") {
     assert(ConsList(1,2,3) === Cons(1, Cons(2, Cons(3, CNil()))))

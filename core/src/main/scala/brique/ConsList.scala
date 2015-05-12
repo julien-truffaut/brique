@@ -1,6 +1,6 @@
 package brique
 
-import algebra.{Eq, Monoid}
+import algebra.{Order, Eq, Monoid}
 import scala.collection.mutable.ListBuffer
 import scala.{Boolean, Int, List, None, Nothing, Option, Some}
 import scala.{inline, unchecked}
@@ -186,6 +186,29 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     acc
   }
 
+  final def sort(implicit A: Order[A]): ConsList[A] =
+    ConsList(toList.sorted(Order.ordering(A)): _*)
+
+  final def isSorted(implicit A: Order[A]): Boolean = this match {
+    case CNil()          => true
+    case Cons(_, CNil()) => true
+    case Cons(first, as) =>
+      var previous = first
+      var l = as
+      while(true){
+        l match {
+          case CNil()     => return true
+          case Cons(h, t) =>
+            if(A.lteqv(previous, h)){
+              previous = h
+              l = t
+            } else return false
+        }
+      }
+      true
+  }
+
+
   /** get the tail if the [[ConsList]] is not empty */
   final def tailOption: Option[ConsList[A]] = this match {
     case CNil()     => Option.empty
@@ -272,6 +295,16 @@ object ConsList extends ConsListInstances {
   /** create a [[ConsList]] from a varargs */
   def apply[A](as: A*): ConsList[A] =
     as.foldRight(empty[A])(Cons(_,_))
+
+  def fill[A](n: Int)(a: A): ConsList[A] = {
+    var acc = empty[A]
+    var size = 0
+    while(size < n){
+      acc = a :: acc
+      size = size + 1
+    }
+    acc
+  }
 
 }
 
