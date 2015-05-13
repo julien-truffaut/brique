@@ -1,6 +1,10 @@
 package brique
 
 import algebra.{Order, Eq, Monoid}
+import cats.Fold.{Continue, Return}
+import cats._
+import java.lang.String
+import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.{Boolean, Int, List, None, Nothing, Option, Some}
 import scala.{inline, unchecked}
@@ -103,6 +107,25 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     case Cons(_, _) => false
   }
 
+  final def isSorted(implicit A: Order[A]): Boolean = this match {
+    case CNil()          => true
+    case Cons(_, CNil()) => true
+    case Cons(first, as) =>
+      var previous = first
+      var l = as
+      while(true){
+        l match {
+          case CNil()     => return true
+          case Cons(h, t) =>
+            if(A.lteqv(previous, h)){
+              previous = h
+              l = t
+            } else return false
+        }
+      }
+      true
+  }
+
   /** get the last element if the [[ConsList]] is not empty */
   final def lastOption: Option[A] = {
     this match {
@@ -150,6 +173,22 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     acc
   }
 
+  def partialFold[B](f: A => Fold[B]): Fold[B] = {
+    def unroll(b: B, fs: ConsList[B => B]): B =
+      fs.foldLeft(b)((b, f) => f(b))
+    @tailrec
+    def loop(current: ConsList[A], fs: ConsList[B => B]): Fold[B] =
+      current match {
+        case CNil()     => Continue(b => unroll(b, fs))
+        case Cons(h, t) => f(h) match {
+          case Return(b)   => Return(unroll(b, fs))
+          case Continue(f) => loop(t, f :: fs)
+          case _           => loop(t, fs)
+        }
+      }
+    loop(this, CNil())
+  }
+
   /** add an element to the front */
   final def prepend(a: A): ConsList[A] =
     Cons(a, this)
@@ -171,6 +210,12 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
     acc
   }
 
+  final def show(implicit A: Show[A]): String =
+    this match {
+      case CNil()     => "[]"
+      case Cons(h, t) => "[" + t.foldLeft(A.show(h))(_ + "," + A.show(_)) + "]"
+  }
+
   /** compute the size of a [[ConsList]] */
   final def size: Int = {
     var acc = 0
@@ -188,25 +233,6 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
 
   final def sort(implicit A: Order[A]): ConsList[A] =
     ConsList(toList.sorted(Order.ordering(A)): _*)
-
-  final def isSorted(implicit A: Order[A]): Boolean = this match {
-    case CNil()          => true
-    case Cons(_, CNil()) => true
-    case Cons(first, as) =>
-      var previous = first
-      var l = as
-      while(true){
-        l match {
-          case CNil()     => return true
-          case Cons(h, t) =>
-            if(A.lteqv(previous, h)){
-              previous = h
-              l = t
-            } else return false
-        }
-      }
-      true
-  }
 
 
   /** get the tail if the [[ConsList]] is not empty */
@@ -249,6 +275,9 @@ sealed abstract class ConsList[A] extends scala.Product with scala.Serializable 
   /** transform a [[ConsList]] into a [[scala.List]] */
   final def toList: List[A] =
     foldLeft(ListBuffer.empty[A])(_ += _).toList
+
+  final def traverse[G[_], B](f: A => G[B])(implicit G: Applicative[G]): G[ConsList[B]] =
+    foldRight(G.pure(empty[B]))((a, acc) => G.map2(f(a), acc)(_ :: _))
 
   /** attempt to get head and tail of a [[ConsList]] */
   final def uncons: Option[(A, ConsList[A])] = this match {
@@ -309,16 +338,35 @@ object ConsList extends ConsListInstances {
 }
 
 sealed abstract class ConsListInstances {
-  implicit def ilistEq[A: Eq]: Eq[ConsList[A]] = new Eq[ConsList[A]]{
-    def eqv(x: ConsList[A], y: ConsList[A]): Boolean =
+  implicit def consListShow[A: Show]: Show[ConsList[A]] = Show.show(_.show)
+
+  implicit def consListEq[A: Eq]: Eq[ConsList[A]] = new Eq[ConsList[A]]{
+    override def eqv(x: ConsList[A], y: ConsList[A]): Boolean =
       x === y
   }
 
-  implicit def ilistMonoid[A]: Monoid[ConsList[A]] = new Monoid[ConsList[A]] {
-    def empty: ConsList[A] =
+  implicit def conListMonoid[A]: Monoid[ConsList[A]] = new Monoid[ConsList[A]] {
+    override def empty: ConsList[A] =
       ConsList.empty
 
-    def combine(x: ConsList[A], y: ConsList[A]): ConsList[A] =
+    override def combine(x: ConsList[A], y: ConsList[A]): ConsList[A] =
       x concat y
+  }
+
+  implicit def consListTraverse: Traverse[ConsList] = new Traverse[ConsList] {
+    override def traverse[G[_]: Applicative, A, B](fa: ConsList[A])(f: A => G[B]): G[ConsList[B]] =
+      fa.traverse(f)
+
+    override def foldLeft[A, B](fa: ConsList[A], b: B)(f: (B, A) => B): B =
+      fa.foldLeft(b)(f)
+
+    override def foldRight[A, B](fa: ConsList[A], b: B)(f: (A, B) => B): B =
+      fa.foldRight(b)(f)
+
+    override def map[A, B](fa: ConsList[A])(f: (A) => B): ConsList[B] =
+      fa.map(f)
+
+    override def partialFold[A, B](fa: ConsList[A])(f: A => Fold[B]): Fold[B] =
+      fa.partialFold(f)
   }
 }
