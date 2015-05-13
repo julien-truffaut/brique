@@ -27,10 +27,11 @@ lazy val commonSettings = Seq(
   ),
   resolvers ++= Seq(
     "bintray/non" at "http://dl.bintray.com/non/maven",
-    Resolver.sonatypeRepo("releases")
+    Resolver.sonatypeRepo("releases"),
+    Resolver.sonatypeRepo("snapshots")
   ),
   libraryDependencies ++= Seq(
-    "org.spire-math" %% "algebra" % "0.2.0-SNAPSHOT" from "http://plastic-idolatry.com/jars/algebra_2.11-0.2.0-SNAPSHOT.jar"
+    "org.spire-math" %% "cats-core" % "0.1.0-SNAPSHOT"
   )
 )
 
